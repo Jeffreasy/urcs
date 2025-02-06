@@ -46,3 +46,6 @@ app.*.map.json
 
 # Docker
 .docker-data/
+
+# Project specific
+ROLLEN.MD

@@ -13,15 +13,27 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Install Linux dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y curl wget unzip xz-utils libglu1-mesa
+
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.x'
+        flutter-version: '3.19.0'
         channel: 'stable'
+        cache: true
     
     - name: Install dependencies
       run: flutter pub get
     
+    - name: Enable web
+      run: flutter config --enable-web
+    
+    - name: Verify formatting
+      run: dart format --output=none --set-exit-if-changed .
+      
     - name: Analyze project source
       run: flutter analyze
     
@@ -29,4 +41,10 @@ jobs:
       run: flutter test
     
     - name: Build web
-      run: flutter build web 
+      run: flutter build web --release
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: web-build
+        path: build/web/ 
