@@ -1,0 +1,7 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Pas hieronder de lintregels aan door de commentaar te verwijderen
+    # avoid_print: false
+    # prefer_single_quotes: true
