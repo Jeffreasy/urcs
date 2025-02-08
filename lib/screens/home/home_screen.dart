@@ -27,13 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<TimeRegistrationProvider>(context);
 
-    // Filter employees based on selected restaurant
-    final restaurantId = provider.selectedRestaurantId;
-    final employees = provider.getVisibleEmployees().where((employee) {
-      if (restaurantId == null) return true;
-      return employee.restaurantId == restaurantId;
-    }).toList();
-
     return Scaffold(
       appBar: const CustomAppBar(),
       endDrawer: MediaQuery.of(context).size.width < 600
@@ -108,46 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
           : null,
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Urenregistratie',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                          ),
-                          Text(
-                            '${employees.length} medewerkers',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-
           // EmployeeTimeTable in Expanded
           Expanded(
             child: EmployeeTimeTable(
