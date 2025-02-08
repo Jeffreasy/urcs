@@ -25,7 +25,7 @@ class TotalRow {
     );
 
     return DataRow(
-      color: WidgetStateProperty.all(
+      color: MaterialStateProperty.all(
         Theme.of(context).colorScheme.primaryContainer.withAlpha(30),
       ),
       cells: [

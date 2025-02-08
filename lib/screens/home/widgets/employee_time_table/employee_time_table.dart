@@ -566,7 +566,7 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
                     dataRowMaxHeight: 100,
                     columnSpacing: 8,
                     horizontalMargin: 8,
-                    headingRowColor: WidgetStateProperty.all(
+                    headingRowColor: MaterialStateProperty.all(
                       Theme.of(context)
                           .colorScheme
                           .primaryContainer

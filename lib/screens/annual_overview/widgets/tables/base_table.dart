@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:data_table_2/data_table_2.dart';
+import '../../../../utils/state_properties.dart';
 
 class BaseTable extends StatelessWidget {
   final List<DataColumn> columns;
@@ -26,7 +27,7 @@ class BaseTable extends StatelessWidget {
       horizontalMargin: 12,
       minWidth: minWidth,
       fixedLeftColumns: fixedLeftColumns ? 3 : 0,
-      headingRowColor: WidgetStateProperty.all(headingRowColor),
+      headingRowColor: StateProperties.color(headingRowColor),
       columns: columns,
       source: _TableDataSource(rows),
       rowsPerPage: 20,

@@ -372,9 +372,7 @@ class _EditRestaurantDialogState extends State<EditRestaurantDialog> {
                         // Status sectie
                         Card(
                           elevation: 0,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
+                          color: Theme.of(context).colorScheme.surface,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                             side: BorderSide(

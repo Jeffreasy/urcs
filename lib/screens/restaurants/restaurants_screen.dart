@@ -134,43 +134,10 @@ class RestaurantsScreen extends StatelessWidget {
                                 // Header met status
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: restaurant.isActive
-                                        ? Color.fromRGBO(
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .primaryContainer
-                                                .r
-                                                .toInt(),
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .primaryContainer
-                                                .g
-                                                .toInt(),
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .primaryContainer
-                                                .b
-                                                .toInt(),
-                                            0.3,
-                                          )
-                                        : Color.fromRGBO(
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .errorContainer
-                                                .r
-                                                .toInt(),
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .errorContainer
-                                                .g
-                                                .toInt(),
-                                            Theme.of(context)
-                                                .colorScheme
-                                                .errorContainer
-                                                .b
-                                                .toInt(),
-                                            0.3,
-                                          ),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
+                                        .withAlpha(76),
                                     borderRadius: const BorderRadius.vertical(
                                         top: Radius.circular(12)),
                                   ),

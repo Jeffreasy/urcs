@@ -27,7 +27,7 @@ class MonthTable extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
-          headingRowColor: WidgetStateProperty.all(
+          headingRowColor: MaterialStateProperty.all(
             Theme.of(context).colorScheme.primaryContainer.withAlpha(76),
           ),
           columns: _buildColumns(),

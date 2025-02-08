@@ -48,7 +48,7 @@ class EmployeeRow {
     if (employee.isHeader) {
       return [
         DataRow(
-          color: WidgetStateProperty.all(
+          color: MaterialStateProperty.all(
             Theme.of(context).colorScheme.primaryContainer.withAlpha(50),
           ),
           cells: [
