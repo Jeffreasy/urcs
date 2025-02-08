@@ -38,7 +38,6 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('nl', 'NL'),
       ],
-      locale: const Locale('nl', 'NL'),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -256,7 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
-                    headingRowColor: MaterialStateProperty.all(
+                    headingRowColor: WidgetStateProperty.all(
                       theme.colorScheme.primaryContainer.withAlpha(76),
                     ),
                     columns: const [
@@ -271,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           _getRegistrationForDateAndEmployee(day, employee.id);
                       return DataRow(
                         color: _isToday(day)
-                            ? MaterialStateProperty.all(
+                            ? WidgetStateProperty.all(
                                 theme.colorScheme.onPrimary.withAlpha(204),
                               )
                             : null,
