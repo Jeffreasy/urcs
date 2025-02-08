@@ -112,7 +112,7 @@ class _AnnualOverviewScreenState extends State<AnnualOverviewScreen> {
       if (selectedRestaurantId != null) {
         final employee = employees.firstWhere(
           (e) => e.id == reg.employeeId,
-          orElse: () => Employee(
+          orElse: () => const Employee(
             id: '',
             name: '',
             function: '',

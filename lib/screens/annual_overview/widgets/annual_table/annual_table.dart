@@ -75,8 +75,11 @@ class _AnnualTableState extends State<AnnualTable> {
                       dataRowMaxHeight: 52,
                       horizontalMargin: 16,
                       columnSpacing: 16,
-                      headingRowColor: WidgetStateProperty.all(
-                        theme.colorScheme.primaryContainer.withAlpha(25),
+                      headingRowColor: MaterialStateProperty.all(
+                        Theme.of(context)
+                            .colorScheme
+                            .primaryContainer
+                            .withAlpha(76),
                       ),
                       headingTextStyle: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -94,9 +97,11 @@ class _AnnualTableState extends State<AnnualTable> {
                         return DataRow(
                           selected: isSelected,
                           onSelectChanged: (_) => _onRowTapped(index, employee),
-                          color: WidgetStateProperty.resolveWith((states) {
-                            if (states.contains(WidgetState.selected)) {
-                              return theme.colorScheme.primaryContainer
+                          color: MaterialStateProperty.resolveWith((states) {
+                            if (states.contains(MaterialState.selected)) {
+                              return Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer
                                   .withAlpha(50);
                             }
                             return null;

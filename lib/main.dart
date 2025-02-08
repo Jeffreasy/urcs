@@ -255,7 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
-                    headingRowColor: WidgetStateProperty.all(
+                    headingRowColor: MaterialStateProperty.all(
                       theme.colorScheme.primaryContainer.withAlpha(76),
                     ),
                     columns: const [
@@ -270,7 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           _getRegistrationForDateAndEmployee(day, employee.id);
                       return DataRow(
                         color: _isToday(day)
-                            ? WidgetStateProperty.all(
+                            ? MaterialStateProperty.all(
                                 theme.colorScheme.onPrimary.withAlpha(204),
                               )
                             : null,

@@ -27,7 +27,7 @@ class WeekTable extends StatelessWidget {
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: DataTable(
-          headingRowColor: MaterialStateProperty.all(
+          headingRowColor: WidgetStateProperty.all(
             Theme.of(context).colorScheme.primaryContainer.withAlpha(76),
           ),
           columns: _buildColumns(),
