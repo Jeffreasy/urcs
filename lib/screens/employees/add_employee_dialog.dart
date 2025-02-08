@@ -61,10 +61,12 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
               decoration: const InputDecoration(
                 labelText: 'Rol',
               ),
-              items: widget.availableRoles.map((role) => DropdownMenuItem(
-                value: role,
-                child: Text(role.toString().split('.').last),
-              )).toList(),
+              items: widget.availableRoles
+                  .map((role) => DropdownMenuItem(
+                        value: role,
+                        child: Text(role.toString().split('.').last),
+                      ))
+                  .toList(),
               onChanged: (Role? newRole) {
                 setState(() => _selectedRole = newRole);
               },
@@ -86,10 +88,8 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate() && _selectedRole != null) {
-              final provider = Provider.of<TimeRegistrationProvider>(
-                context, 
-                listen: false
-              );
+              final provider =
+                  Provider.of<TimeRegistrationProvider>(context, listen: false);
               provider.addEmployee(
                 _nameController.text,
                 _functionController.text,
@@ -103,4 +103,4 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
       ],
     );
   }
-} 
+}
