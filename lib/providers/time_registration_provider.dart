@@ -9,48 +9,48 @@ import '../models/period_type.dart';
 class TimeRegistrationProvider extends ChangeNotifier {
   final List<TimeRegistration> _registrations = [];
   final List<Employee> _employees = [
-    Employee(
+    const Employee(
       id: '1',
       name: 'Jeffrey van Prehn',
       function: 'Super Admin',
       role: Role.superAdmin,
     ),
-    Employee(
+    const Employee(
       id: '2',
       name: 'Cemil Sahinturk',
       function: 'Eigenaar',
       role: Role.owner,
       restaurantId: 'rest_1',
     ),
-    Employee(
+    const Employee(
       id: '3',
       name: 'Jan Janssen',
       function: 'Manager',
       role: Role.manager,
       restaurantId: 'rest_1',
     ),
-    Employee(
+    const Employee(
       id: '4',
       name: 'Piet Peters',
       function: 'Medewerker',
       role: Role.employee,
       restaurantId: 'rest_1',
     ),
-    Employee(
+    const Employee(
       id: '5',
       name: 'Test Eigenaar',
       function: 'Eigenaar',
       role: Role.owner,
       restaurantId: 'rest_2',
     ),
-    Employee(
+    const Employee(
       id: '6',
       name: 'Test Manager',
       function: 'Manager',
       role: Role.manager,
       restaurantId: 'rest_2',
     ),
-    Employee(
+    const Employee(
       id: '7',
       name: 'Test Medewerker',
       function: 'Medewerker',
@@ -493,5 +493,44 @@ class TimeRegistrationProvider extends ChangeNotifier {
     } catch (e) {
       return null;
     }
+  }
+
+  String? _selectedRestaurantId;
+
+  // Getter
+  String? get selectedRestaurantId => _selectedRestaurantId;
+
+  // Setter
+  void setSelectedRestaurant(String? restaurantId) {
+    if (_selectedRestaurantId != restaurantId) {
+      _selectedRestaurantId = restaurantId;
+      notifyListeners();
+    }
+  }
+
+  TimeRegistration? getRegistrationForDate(DateTime date, String employeeId) {
+    try {
+      return registrations.firstWhere((reg) =>
+          reg.date.year == date.year &&
+          reg.date.month == date.month &&
+          reg.date.day == date.day &&
+          reg.employeeId == employeeId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  double calculateWeekTotal(String employeeId, DateTime weekStart) {
+    double total = 0;
+    for (int i = 0; i < 7; i++) {
+      final date = weekStart.add(Duration(days: i));
+      final reg = getRegistrationForDate(date, employeeId);
+      if (reg != null) {
+        // Verwijder "uur" en converteer naar double
+        final hours = reg.calculateHours().replaceAll(' uur', '');
+        total += double.tryParse(hours) ?? 0;
+      }
+    }
+    return total;
   }
 }

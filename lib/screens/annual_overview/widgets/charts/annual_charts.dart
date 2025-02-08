@@ -135,8 +135,10 @@ class AnnualCharts extends StatelessWidget {
               },
             ),
           ),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(show: false),
         lineBarsData: [
@@ -147,7 +149,7 @@ class AnnualCharts extends StatelessWidget {
             isCurved: true,
             color: theme.colorScheme.primary,
             barWidth: 3,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               color: theme.colorScheme.primary.withAlpha(25),
@@ -209,9 +211,9 @@ class AnnualCharts extends StatelessWidget {
 
     return BarChart(
       BarChartData(
-        gridData: FlGridData(show: true),
+        gridData: const FlGridData(show: true),
         titlesData: FlTitlesData(
-          leftTitles: AxisTitles(
+          leftTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: true),
           ),
           bottomTitles: AxisTitles(

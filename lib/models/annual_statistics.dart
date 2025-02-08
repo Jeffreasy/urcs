@@ -26,15 +26,15 @@ class AnnualStatistics {
   });
 
   factory AnnualStatistics.empty() {
-    return AnnualStatistics(
+    return const AnnualStatistics(
       totalHours: 0,
       growth: 0,
       occupancyRate: 0,
       averageMonthlyHours: 0,
       totalEmployees: 0,
       totalCosts: 0,
-      monthlyTotals: const {},
-      employeeTotals: const {},
+      monthlyTotals: {},
+      employeeTotals: {},
       busiestDay: null,
       topEmployees: [],
     );

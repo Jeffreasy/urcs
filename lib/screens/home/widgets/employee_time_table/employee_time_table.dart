@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:logging/logging.dart';
 import '../../../../providers/time_registration_provider.dart';
 import '../../../../models/time_registration.dart';
 import '../../../../models/permission.dart' as perm;
 import '../../../../models/employee.dart';
 import 'employee_row.dart';
-import '../../../../services/export_service.dart';
 import 'day_header.dart';
 import '../../../../models/role.dart';
 import '../../../../models/period_type.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/widgets.dart' as pw;
+import '../../../../services/export_service.dart';
 
 class EmployeeTimeTable extends StatefulWidget {
   final PeriodType periodType;
@@ -35,8 +36,6 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
   RegistrationStatus? _filterStatus;
   String? _selectedRestaurantId;
   late TimeRegistrationProvider _provider;
-  static final _logger = Logger('EmployeeTimeTable');
-  final _exportService = ExportService();
 
   @override
   void didChangeDependencies() {
@@ -61,118 +60,106 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
     }
   }
 
-  List<Map<String, String>> _buildExportData() {
-    return _provider.registrations.map((reg) {
-      final employee =
-          _provider.employees.firstWhere((e) => e.id == reg.employeeId);
-      return {
-        'datum': DateFormat('dd-MM-yyyy').format(reg.date),
-        'medewerker': employee.name,
-        'start': reg.startTime.format(context),
-        'eind': reg.endTime.format(context),
-        'uren': reg.totalHours.toStringAsFixed(1),
-        'status': reg.status.toString(),
-      };
-    }).toList();
-  }
+  Future<void> _handleExport() async {
+    if (!mounted) return;
+    try {
+      final weekDays = _getWeekDays(_selectedDate);
+      final employees = _getFilteredEmployees();
 
-  void _handlePrint() {
-    final data = _buildExportData();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Print Preview'),
-        content: SingleChildScrollView(
-          child: DataTable(
-            columns: const [
-              DataColumn(label: Text('Datum')),
-              DataColumn(label: Text('Medewerker')),
-              DataColumn(label: Text('Start')),
-              DataColumn(label: Text('Eind')),
-              DataColumn(label: Text('Uren')),
-              DataColumn(label: Text('Status')),
+      // Toon export opties dialog
+      final result = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Exporteren'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.table_chart),
+                title: const Text('Excel'),
+                onTap: () => Navigator.pop(context, 'excel'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.picture_as_pdf),
+                title: const Text('PDF'),
+                onTap: () => Navigator.pop(context, 'pdf'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.code),
+                title: const Text('CSV'),
+                onTap: () => Navigator.pop(context, 'csv'),
+              ),
             ],
-            rows: data.map((row) {
-              return DataRow(
-                cells: [
-                  DataCell(Text(row['datum']!)),
-                  DataCell(Text(row['medewerker']!)),
-                  DataCell(Text(row['start']!)),
-                  DataCell(Text(row['eind']!)),
-                  DataCell(Text(row['uren']!)),
-                  DataCell(Text(row['status']!)),
-                ],
-              );
-            }).toList(),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuleren'),
-          ),
-          FilledButton.icon(
-            onPressed: () {
-              _logger.info('Printen van urenregistratie');
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.print),
-            label: const Text('Printen'),
-          ),
-        ],
-      ),
-    );
+      );
+
+      if (!mounted) return;
+      if (result != null) {
+        final exportService = ExportService();
+        switch (result) {
+          case 'excel':
+            await exportService.exportToExcel(
+              employees,
+              weekDays,
+              _provider,
+              context,
+            );
+            break;
+          case 'pdf':
+            await exportService.exportToPdf(
+              registrations: _provider.registrations,
+              employees: employees,
+              periodType: widget.periodType,
+              year: widget.selectedYear,
+              week: widget.selectedWeek,
+              month: widget.selectedMonth,
+            );
+            break;
+          case 'csv':
+            await exportService.exportToCsv(
+              employees,
+              weekDays,
+              _provider,
+              context,
+            );
+            break;
+        }
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Export succesvol')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export mislukt: ${e.toString()}')),
+      );
+    }
   }
 
-  void _handleExport() {
-    final data = _buildExportData();
+  Future<void> _handlePrint() async {
+    if (!mounted) return;
+    try {
+      final weekDays = _getWeekDays(_selectedDate);
+      final employees = _getFilteredEmployees();
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Exporteren'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.table_chart),
-              title: const Text('Excel'),
-              onTap: () {
-                _logger.info('Exporteren naar Excel: $data');
-                _exportService.exportToExcel(data);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf),
-              title: const Text('PDF'),
-              onTap: () {
-                _logger.info('Exporteren naar PDF: $data');
-                _exportService.exportToPdf(
-                  registrations: _provider.registrations,
-                  employees: _provider.employees,
-                  periodType: _provider.selectedPeriodType,
-                  year: _provider.selectedYear,
-                  week: _provider.selectedWeek,
-                  month: _provider.selectedMonth,
-                );
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.code),
-              title: const Text('CSV'),
-              onTap: () {
-                _logger.info('Exporteren naar CSV: $data');
-                _exportService.exportToCsv(data);
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+      // Genereer printbaar document
+      final pdf = await _generatePrintDocument(employees, weekDays);
+
+      // Print het document
+      await Printing.layoutPdf(
+        onLayout: (format) => pdf.save(),
+        name:
+            'Urenregistratie ${DateFormat('yyyy_MM_dd').format(_selectedDate)}',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Printen mislukt: ${e.toString()}')),
+      );
+    }
   }
 
   /// Genereert de dagen van de week, startend bij maandag.
@@ -337,12 +324,12 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
   }
 
   List<Employee> _getFilteredEmployees() {
-    final employees = <Employee>[];
+    final List<Employee> employees = [];
+    final currentEmployee = _provider.currentEmployee;
 
-    // Voor superadmin: groepeer per restaurant
-    if (_provider.currentEmployee?.role == Role.superAdmin) {
+    if (currentEmployee?.role == Role.superAdmin) {
       if (_selectedRestaurantId != null) {
-        // Als een specifiek restaurant is geselecteerd, toon alleen die medewerkers
+        // Als een restaurant is geselecteerd, toon alleen medewerkers van dat restaurant
         employees
             .addAll(_provider.getEmployeesByRestaurant(_selectedRestaurantId));
       } else {
@@ -353,23 +340,10 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
 
         // Voeg dan per restaurant de medewerkers toe, gesorteerd op rol
         for (final restaurant in _provider.restaurants) {
-          // Voeg een "header" employee toe om restaurants te scheiden
-          employees.add(
-            Employee(
-              id: 'header_${restaurant.id}',
-              name: restaurant.name,
-              function: 'Restaurant',
-              role: Role.owner, // Dit bepaalt de styling
-              restaurantId: restaurant.id,
-              isHeader: true, // Nieuwe property om headers te markeren
-            ),
-          );
-
           // Voeg medewerkers toe, gesorteerd op rol
           final restaurantEmployees = _provider
               .getEmployeesByRestaurant(restaurant.id)
             ..sort((a, b) {
-              // Sorteer eerst op rol (owner -> manager -> employee)
               final roleOrder = {
                 Role.owner: 0,
                 Role.manager: 1,
@@ -378,7 +352,6 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
               final roleCompare =
                   (roleOrder[a.role] ?? 3).compareTo(roleOrder[b.role] ?? 3);
               if (roleCompare != 0) return roleCompare;
-              // Bij gelijke rol, sorteer op naam
               return a.name.compareTo(b.name);
             });
 
@@ -388,10 +361,12 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
     } else {
       // Voor andere gebruikers: gebruik bestaande filter
       employees.addAll(_provider.employees.where((employee) {
-        if (_selectedRestaurantId != null &&
-            employee.restaurantId != _selectedRestaurantId) {
+        // Filter op geselecteerd restaurant
+        if (_provider.selectedRestaurantId != null &&
+            employee.restaurantId != _provider.selectedRestaurantId) {
           return false;
         }
+        // Filter op status als die is geselecteerd
         if (_filterStatus != null) {
           final hasRegistrationWithStatus = _provider.registrations.any((reg) =>
               reg.employeeId == employee.id && reg.status == _filterStatus);
@@ -402,6 +377,69 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
     }
 
     return employees;
+  }
+
+  Future<pw.Document> _generatePrintDocument(
+    List<Employee> employees,
+    List<DateTime> weekDays,
+  ) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'Urenregistratie',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Table(
+                border: pw.TableBorder.all(),
+                children: [
+                  // Header row
+                  pw.TableRow(
+                    children: [
+                      pw.Text('Medewerker'),
+                      pw.Text('Functie'),
+                      ...weekDays.map((day) => pw.Text(
+                            DateFormat('E d MMM').format(day),
+                          )),
+                      pw.Text('Totaal'),
+                    ],
+                  ),
+                  // Data rows
+                  ...employees.map((employee) => pw.TableRow(
+                        children: [
+                          pw.Text(employee.name),
+                          pw.Text(employee.function),
+                          ...weekDays.map((day) {
+                            final reg = _provider.getRegistrationForDate(
+                              day,
+                              employee.id,
+                            );
+                            return pw.Text(
+                                reg?.calculateHours().toString() ?? '-');
+                          }),
+                          pw.Text(_provider
+                              .calculateWeekTotal(employee.id, weekDays.first)
+                              .toString()),
+                        ],
+                      )),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    return pdf;
   }
 
   @override
@@ -422,65 +460,88 @@ class _EmployeeTimeTableState extends State<EmployeeTimeTable> {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 12,
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
+              child: Column(
                 children: [
-                  _buildWeekNavigator(),
-                  DropdownButton<String?>(
-                    value: _selectedRestaurantId,
-                    underline: const SizedBox(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Alle Restaurants'),
-                      ),
-                      ..._provider.restaurants.map((restaurant) {
-                        return DropdownMenuItem(
-                          value: restaurant.id,
-                          child: Text(restaurant.name),
-                        );
-                      }),
-                    ],
-                    onChanged: (value) =>
-                        setState(() => _selectedRestaurantId = value),
+                  // Titel en aantal medewerkers
+                  Text(
+                    'Urenregistratie',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                   ),
-                  DropdownButton<RegistrationStatus?>(
-                    value: _filterStatus,
-                    underline: const SizedBox(),
-                    hint: const Text('Filter op status'),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Alle statussen'),
-                      ),
-                      ...RegistrationStatus.values.map((status) {
-                        return DropdownMenuItem(
-                          value: status,
-                          child: Text(
-                            switch (status) {
-                              RegistrationStatus.approved => 'Goedgekeurd',
-                              RegistrationStatus.rejected => 'Afgekeurd',
-                              RegistrationStatus.pending => 'In behandeling',
-                            },
+                  const SizedBox(height: 4),
+                  Text(
+                    '${employees.length} medewerkers',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Bestaande filters
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      _buildWeekNavigator(),
+                      DropdownButton<String?>(
+                        value: _selectedRestaurantId,
+                        underline: const SizedBox(),
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('Alle Restaurants'),
                           ),
-                        );
-                      }),
+                          ..._provider.restaurants.map((restaurant) {
+                            return DropdownMenuItem(
+                              value: restaurant.id,
+                              child: Text(restaurant.name),
+                            );
+                          }),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _selectedRestaurantId = value),
+                      ),
+                      DropdownButton<RegistrationStatus?>(
+                        value: _filterStatus,
+                        underline: const SizedBox(),
+                        hint: const Text('Filter op status'),
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('Alle statussen'),
+                          ),
+                          ...RegistrationStatus.values.map((status) {
+                            return DropdownMenuItem(
+                              value: status,
+                              child: Text(
+                                switch (status) {
+                                  RegistrationStatus.approved => 'Goedgekeurd',
+                                  RegistrationStatus.rejected => 'Afgekeurd',
+                                  RegistrationStatus.pending =>
+                                    'In behandeling',
+                                },
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _filterStatus = value),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.print),
+                        onPressed: _handlePrint,
+                        tooltip: 'Printen',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.file_download),
+                        onPressed: _handleExport,
+                        tooltip: 'Exporteren',
+                      ),
                     ],
-                    onChanged: (value) => setState(() => _filterStatus = value),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.print),
-                    onPressed: _handlePrint,
-                    tooltip: 'Printen',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.file_download),
-                    onPressed: _handleExport,
-                    tooltip: 'Exporteren',
                   ),
                 ],
               ),

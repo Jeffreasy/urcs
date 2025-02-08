@@ -26,12 +26,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<TimeRegistrationProvider>(context);
-    // Verwijder ongebruikte variabelen
-    // final isSuperAdmin = provider.currentEmployee?.role == Role.superAdmin;
-    // final restaurants = provider.restaurants.where((r) => r.isActive).toList();
 
-    // Gebruik getVisibleEmployees voor alle gevallen
-    final employees = provider.getVisibleEmployees();
+    // Filter employees based on selected restaurant
+    final restaurantId = provider.selectedRestaurantId;
+    final employees = provider.getVisibleEmployees().where((employee) {
+      if (restaurantId == null) return true;
+      return employee.restaurantId == restaurantId;
+    }).toList();
 
     return Scaffold(
       appBar: const CustomAppBar(),
@@ -112,7 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header met restaurant naam
                 Row(
                   children: [
                     Expanded(
